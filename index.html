@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SUBWAY SPIDER - Superhero Endless Runner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Phaser Canvas Container -->
+    <div id="game-container"></div>
+
+    <!-- Camera PiP HUD (Visible in Camera Mode) -->
+    <div id="camera-pip-panel" class="pip-container hidden">
+      <div class="pip-header">
+        <div class="pip-title">
+          <span class="pip-dot pulse"></span>
+          <span id="pip-status-text">CAMERA READY</span>
+        </div>
+        <button id="pip-toggle-btn" class="pip-btn" title="Minimize / Expand">_</button>
+      </div>
+
+      <div class="pip-video-wrapper">
+        <video id="webcam-video" playsinline muted autoplay></video>
+        <canvas id="webcam-canvas"></canvas>
+        <div id="pip-guide-overlay" class="pip-guides">
+          <div class="lane-guide left">L</div>
+          <div class="lane-guide center">C</div>
+          <div class="lane-guide right">R</div>
+        </div>
+      </div>
+
+      <div class="pip-hud-stats">
+        <div class="stat-badge" id="body-lane-badge">LANE: CENTER</div>
+        <div class="stat-badge" id="body-jump-badge">READY TO JUMP</div>
+        <div class="stat-badge" id="hand-status-badge">HAND READY 🤟</div>
+      </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu-overlay" class="menu-overlay">
+      <!-- Animated Spider-Web Background Motif -->
+      <div class="web-bg-network">
+        <div class="web-strand strand-1"></div>
+        <div class="web-strand strand-2"></div>
+        <div class="web-strand strand-3"></div>
+      </div>
+
+      <div class="menu-card">
+        <!-- Superhero Badge -->
+        <div class="hero-badge">
+          <span class="spider-icon">🕸️</span>
+          <span>SUBWAY RUNNER</span>
+        </div>
+
+        <!-- Animated Game Title -->
+        <h1 class="game-logo">SUBWAY SPIDER</h1>
+        <p class="game-tagline">RUN. DODGE. SWING.</p>
+
+        <!-- Best Score Banner -->
+        <div class="menu-best-banner">
+          <span class="trophy">🏆</span>
+          <span id="menu-high-score">BEST SCORE: 0</span>
+        </div>
+
+        <!-- Mode Selection Section -->
+        <div class="mode-selection-header">
+          HOW DO YOU WANT TO PLAY?
+        </div>
+
+        <div class="mode-cards-container">
+          <!-- Camera Mode (Recommended) -->
+          <button id="btn-select-camera" class="mode-card camera-card glow-pulse">
+            <div class="mode-card-badge">RECOMMENDED</div>
+            <div class="mode-icon">📷</div>
+            <div class="mode-info">
+              <h3>CAMERA MODE</h3>
+              <p>Use your real body &amp; hand gestures</p>
+            </div>
+            <div class="mode-arrow">➔</div>
+          </button>
+
+          <!-- Keyboard Mode -->
+          <button id="btn-select-keyboard" class="mode-card keyboard-card">
+            <div class="mode-icon">⌨️</div>
+            <div class="mode-info">
+              <h3>KEYBOARD MODE</h3>
+              <p>Use keyboard controls (Arrow Keys / Space / E)</p>
+            </div>
+            <div class="mode-arrow">➔</div>
+          </button>
+        </div>
+
+        <!-- Auxiliary Action Buttons -->
+        <div class="menu-aux-actions">
+          <button id="btn-open-instructions" class="btn-aux">
+            <span class="aux-icon">📖</span> HOW TO PLAY
+          </button>
+          <button id="btn-toggle-sound" class="btn-aux">
+            <span class="aux-icon" id="sound-icon">🔊</span> <span id="sound-label">SOUND: ON</span>
+          </button>
+        </div>
+
+        <div class="menu-footer">
+          🔒 100% Free &amp; Private. Webcam vision is processed locally on your device.
+        </div>
+      </div>
+    </div>
+
+    <!-- CALIBRATION / CAMERA LOADING MODAL -->
+    <div id="calibration-modal" class="modal-overlay hidden">
+      <div class="modal-card calibration-card">
+        <div class="modal-badge">📷 CAMERA MODE INITIALIZING</div>
+        <h2 class="modal-title-small" id="calib-title">STAND READY</h2>
+        <p class="modal-subtitle" id="calib-desc">Please step back so your upper body is visible to the camera.</p>
+
+        <div class="calibration-preview-box">
+          <div class="silhouette-guide">
+            <div class="silhouette-head"></div>
+            <div class="silhouette-body"></div>
+          </div>
+          <div class="calib-spinner-ring" id="calib-spinner"></div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="calib-progress-bar" style="width: 0%;"></div>
+        </div>
+        <div class="progress-label" id="calib-progress-label">Requesting camera access...</div>
+
+        <div class="modal-actions">
+          <button id="btn-cancel-calibration" class="btn-secondary">
+            ⌨️ SWITCH TO KEYBOARD MODE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY MODAL -->
+    <div id="how-to-play-modal" class="modal-overlay hidden">
+      <div class="modal-card how-to-play-card">
+        <div class="modal-badge">SUPERHERO FIELD MANUAL</div>
+        <h2 class="modal-title-small">HOW TO PLAY</h2>
+
+        <div class="instructions-tabs">
+          <div class="tab-section">
+            <div class="tab-header camera-header">
+              <span class="tab-icon">📷</span>
+              <h3>CAMERA MODE</h3>
+              <span class="badge-mini">RECOMMENDED</span>
+            </div>
+            <div class="instructions-list">
+              <div class="inst-item">
+                <span class="inst-key">🏃 LEAN BODY</span>
+                <span class="inst-desc">Move upper body Left or Right to switch tracks</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">⚡ JUMP</span>
+                <span class="inst-desc">Physically jump upward to clear oncoming barriers</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">🤟 GESTURE</span>
+                <span class="inst-desc">Show 🤟 or 🤘 to shoot a web at overhead pipes</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">🚇 TRAIN ROOF</span>
+                <span class="inst-desc">Swing onto train roofs to sprint and grab gold coins</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-section">
+            <div class="tab-header keyboard-header">
+              <span class="tab-icon">⌨️</span>
+              <h3>KEYBOARD MODE</h3>
+            </div>
+            <div class="instructions-list">
+              <div class="inst-item">
+                <span class="inst-key">A / ← or D / →</span>
+                <span class="inst-desc">Switch Left / Right lanes</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">W / SPACE / ↑</span>
+                <span class="inst-desc">Jump over obstacles &amp; barriers</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">E / F</span>
+                <span class="inst-desc">Shoot Spider-Web &amp; Swing</span>
+              </div>
+              <div class="inst-item">
+                <span class="inst-key">P / ESC</span>
+                <span class="inst-desc">Pause / Resume game</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-close-instructions" class="btn-hero glow">
+            GOT IT, LET'S PLAY!
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
