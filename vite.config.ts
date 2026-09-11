@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: '/subway-spider/',
   server: {
     port: 5173,
     host: true,
